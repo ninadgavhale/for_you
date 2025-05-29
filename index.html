@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>For You ❤️</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: black;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .timer {
+      position: absolute;
+      bottom: 30px;
+      color: rgb(239, 6, 6);
+      font-size: 1.7rem;
+      text-align: center;
+      display: none;
+    }
+
+    .quote {
+      position: absolute;
+      top: 30px;
+      font-size: 1.3rem;
+      color: rgba(255, 100, 100, 0.9);
+      text-align: center;
+      max-width: 80%;
+      line-height: 1.5;
+      display: none;
+    }
+
+    #startScreen {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #startScreen h1 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    #startButton {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #startButton:hover {
+      background-color: darkred;
+    }
+
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="startScreen">
+    <h1>❤️ Tap to Begin ❤️</h1>
+    <button id="startButton">Start</button>
+  </div>
+
+  <canvas id="heartCanvas"></canvas>
+  <div class="quote">love you hemal<br> Mi asel nasel khush ra yrr<br>Maja bokya 🐱😘</div>
+  <div class="timer" id="countdown"></div>
+
+  <audio id="bg-music" loop>
+    <source src="https://s3.filebin.net/filebin/6bd66080a55c551288574d73a216eb5f6326bf08fb0b3b31a282558791d3f58c/47c66ba6a974daf6c48c8ecc322fe99e1303c8d84fb6c250251e8d5b5cb6fc52" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const totalParticles = 20000;
+    const fireflies = [];
+    const threads = [];
+    const particles = [];
+
+    function heartFunction(t) {
+      const scale = 15;
+      const x = scale * 16 * Math.pow(Math.sin(t), 3);
+      const y = -scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      return { x, y };
+    }
+
+    for (let i = 0; i < totalParticles; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random();
+      const { x, y } = heartFunction(angle);
+      particles.push({
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        targetX: canvas.width / 2 + x * radius,
+        targetY: canvas.height / 2 + y * radius,
+        alpha: 0,
+        speed: Math.random() * 0.05 + 0.01
+      });
+    }
+
+    for (let i = 0; i < 100; i++) {
+      fireflies.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 0.5,
+        alpha: Math.random(),
+        dx: (Math.random() - 0.5) * 1.5,
+        dy: (Math.random() - 0.5) * 1.5
+      });
+    }
+
+    for (let i = 0; i < 50; i++) {
+      threads.push({
+        x: Math.random() < 0.5 ? 0 : canvas.width,
+        y: Math.random() * canvas.height,
+        length: 0,
+        speed: Math.random() * 2.5 + 0.5,
+        angle: Math.random() * Math.PI * 2,
+        color: `rgba(255, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, 0.2)`
+      });
+    }
+
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const pulse = 1 + 0.05 * Math.sin(Date.now() * 0.005);
+
+      for (let p of particles) {
+        p.x += (p.targetX - p.x) * p.speed;
+        p.y += (p.targetY - p.y) * p.speed;
+        p.alpha = Math.min(p.alpha + 0.005, 1);
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 0, 0, ${p.alpha})`;
+        ctx.arc(p.x, p.y, 0.5 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let f of fireflies) {
+        f.x += f.dx;
+        f.y += f.dy;
+        if (f.x < 0 || f.x > canvas.width) f.dx *= -1;
+        if (f.y < 0 || f.y > canvas.height) f.dy *= -1;
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 20, 20, ${f.alpha})`;
+        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let t of threads) {
+        const endX = t.x + Math.cos(t.angle) * t.length;
+        const endY = t.y + Math.sin(t.angle) * t.length;
+        ctx.beginPath();
+        ctx.strokeStyle = t.color;
+        ctx.moveTo(t.x, t.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        t.length += t.speed;
+        if (t.length > 200) {
+          t.x = Math.random() < 0.5 ? 0 : canvas.width;
+          t.y = Math.random() * canvas.height;
+          t.length = 0;
+          t.angle = Math.random() * Math.PI * 2;
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    const countdown = document.getElementById('countdown');
+    const targetDate = new Date('2025-06-11T00:00:00');
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        countdown.innerHTML = `🎉 Happy Birthday!<br>MY LOVE!<br>PLEASE BE HAPPY WHETHER I'M THERE OR NOT FOR YOU 🎂`;
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      countdown.textContent = `Time until your birthday: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    setInterval(updateCountdown, 1000);
+
+    // Start button logic
+    document.getElementById("startButton").addEventListener("click", () => {
+      document.getElementById("startScreen").style.display = "none";
+      document.querySelector(".quote").style.display = "block";
+      document.querySelector(".timer").style.display = "block";
+      document.getElementById("bg-music").play();
+      draw();
+      updateCountdown();
+    });
+  </script>
+</body>
+</html>
